@@ -1,15 +1,14 @@
 package com.example.demo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/files")
@@ -35,5 +34,42 @@ public class TestController {
         } catch (IOException e) {
             return ResponseEntity.ok("Could not upload the file!");
         }
+    }
+
+    /*@GetMapping("noData/{id}")
+    public ResponseEntity<FileModel> getFile(@PathVariable Long id) {
+        return fileStorageService.getFileById(id)
+                .map(file -> {
+                    file.setData(null); // Ensure data is not serialized
+                    return ResponseEntity.ok(file);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }*/
+
+    // Endpoint to get file data
+    @GetMapping("/{id}/data")
+    public ResponseEntity<byte[]> getFileData(@PathVariable Long id) {
+        byte[] data = fileStorageService.getFileData(id);
+        if (data != null) {
+            return ResponseEntity.ok(data);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_XML_VALUE)
+    public ResponseEntity<FileModel> getFile(@PathVariable Long id) {
+        FileModel file = fileStorageService.prepareFileForResponse(id);
+        if (file != null) {
+            return ResponseEntity.ok(file);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    private String formatFileSize(long size) {
+        // Convert bytes to MB and format the string
+        double sizeInMb = size / (1024.0 * 1024.0);
+        return String.format("%.2f MB", sizeInMb);
     }
 }
