@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,8 @@ public class TestController {
 
         } catch (IOException e) {
             return ResponseEntity.ok("Could not upload the file!");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -63,6 +66,17 @@ public class TestController {
         if (file != null) {
             return ResponseEntity.ok(file);
         } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping(value ="/delete/{id}")
+    public ResponseEntity<?> deleteFile(@PathVariable Long id) {
+        try {
+            fileStorageService.deleteFileById(id);
+            return ResponseEntity.ok("Deleted Successfully!");
+        }
+        catch (EmptyResultDataAccessException e) {
             return ResponseEntity.notFound().build();
         }
     }

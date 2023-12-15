@@ -20,7 +20,7 @@ public class FileModel{
     private String filesize;
 
     @Lob
-    @Column(length = 1000)
+    @Column(length = 10000)
     @Basic(fetch = FetchType.LAZY)
     private byte[] data;
 
