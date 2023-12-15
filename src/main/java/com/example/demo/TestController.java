@@ -34,8 +34,9 @@ public class TestController {
 
         } catch (IOException e) {
             return ResponseEntity.ok("Could not upload the file!");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

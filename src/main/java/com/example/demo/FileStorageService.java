@@ -1,6 +1,8 @@
 package com.example.demo;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,8 +12,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Base64;
-import java.util.Optional;
+import java.util.*;
 import java.util.zip.DeflaterOutputStream;
 
 @Service
@@ -20,9 +21,18 @@ public class FileStorageService {
     @Autowired
     private TestRepository testRepository;
 
+    @Value("${file.allowed-extensions}")
+    private String[] allowedExtensions;
+
+    private Set<String> allowedExtensionsSet;
+
+    @PostConstruct
+    public void init() {
+        allowedExtensionsSet = new HashSet<>(Arrays.asList(allowedExtensions));
+    }
 
     public FileModel storeFile(MultipartFile file) throws Exception {
-
+        checkAllowedFileType(file);
         byte[] fileData = file.getBytes();
 
         byte[] encryptData = encryptData(fileData);
@@ -34,6 +44,15 @@ public class FileStorageService {
         fileModel.setFilesize(String.valueOf(file.getSize()));
         fileModel.setData(compressData);
         return testRepository.save(fileModel);
+    }
+
+    private void checkAllowedFileType(MultipartFile file) {
+        String fileName = file.getOriginalFilename();
+        String fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+
+        if (!allowedExtensionsSet.contains(fileExtension)) {
+            throw new IllegalArgumentException("File type not allowed.");
+        }
     }
 
     public FileModel getFileById(Long id) {
